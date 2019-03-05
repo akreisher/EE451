@@ -1,0 +1,9 @@
+#Exclude from git
+
+#Auto-Save files
+
+**/#*#
+
+#Backup files
+
+**/*~
