@@ -1,4 +1,4 @@
-#include "matlib.h"
+#include "lib/matlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -34,6 +34,8 @@ int main(){
       A->dat[i][j] = rand()%100;
     }
   }
+
+  
 
   /*
   A->dat[0][0] = 1;
