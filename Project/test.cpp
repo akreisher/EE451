@@ -1,29 +1,30 @@
 #include "lib/matlib.h"
 #include <iostream>
+#include <cstdlib>
 
 using namespace matlib;
 
 int main(){
-  Matrix A(2,3,"Hello");
 
-  
-  A[0][0] = 3;
-  A[1][0] = 5;
-  
-
-  Matrix B(3,2,"b");
-  B[0][0] = 2;
+  int n = 4;
+  int m = 6;
   
   
-  B[0][1] = 7;
+  Matrix A(n,m,"A");
+  for (int i = 0; i<n; i++){
+    for (int j = 0; j<m; j++){
+      A[i][j] = rand()%100;
+    }
+  }
+  Matrix B = MPInvert(A);
+ 
   
-  std::cout << A<<std::endl<<B<<std::endl;
+  std::cout<< A << B;
+  
+  Matrix res = A*B;
+  res.setName("A *B");
 
-  B = eyes(5,5);
-
-  std::cout<<B;
-
-
+  std::cout<<res;
   
 }
   
