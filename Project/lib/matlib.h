@@ -1,8 +1,16 @@
 #include <string>
 #include <iostream>
-
+#ifndef MATLIB_H
+#define MATLIB_H
 
 namespace matlib{
+
+  class MatOpException : public std::exception{
+    std::string msg;
+  public:
+    MatOpException(std::string msg){this->msg = msg;}
+    const char* what() const throw(){return msg.c_str();}
+  };
   
   class Vector
   {
@@ -14,6 +22,7 @@ namespace matlib{
     void free();
   public:
     //constructors
+    Vector () {}
     Vector(int n) {this->alloc(n);}
     Vector(int n, std::string name):Vector(n){this->name = name;}
     Vector(std::string name){this->name = name;}
@@ -22,14 +31,19 @@ namespace matlib{
 
     ~Vector(){this->free();}
     
-    const int size(){return this->n;} 
+    int size() const{return this->n;}
+    double magnitude() const;
 
     //name getter and setter
     void setName(std::string name) {this->name = name;}
-    std::string getName() {return this->name;}
+    std::string getName() const{return this->name;}
 
     //overloaded operators
     double& operator[](int c);
+    const double& operator[](int c) const;
+    Vector operator+(const Vector& B) const;
+    Vector operator-(const Vector& B) const;
+    double  operator*(const Vector& B) const;
     bool operator==(const Vector& rhs);
   };
     
@@ -58,45 +72,51 @@ namespace matlib{
       ~Matrix(){this->free();}
       
       //getter for n (num rows) and m (num columns)
-      int getN() {return n;}
-      int getM() {return m;}
+      int getN() const{return n;}
+      int getM() const{return m;}
 
       //name getter/setter
       void setName(std::string name) {this->name = name;}
-      std::string getName() {return this->name;}
+      std::string getName() const {return this->name;}
 
       //operator overloads
       Vector& operator[](int r);
-      Matrix& operator+=(Matrix& B);
-      Matrix& operator-=(Matrix& B);
-      Matrix operator*(Matrix& B);
-      Matrix operator+(Matrix& B);
-      Matrix operator-(Matrix& B);
-      bool operator==(const Matrix& rhs);
+      const Vector& operator[](int r) const;
+      Matrix& operator+=(const Matrix& B);
+      Matrix& operator-=(const Matrix& B);
+      Matrix operator*(const Matrix& B) const;
+      Matrix operator+(const Matrix& B) const;
+      Matrix operator-(const Matrix& B) const;
+      bool operator==(const Matrix& rhs) const;
 
-      
+      void print();
 
     };
+  Vector magic(int n);
+  Matrix magic(int n, int m);
   //return nxm identity matrix 
   Matrix eyes(int n, int m);
   //LUP decomposition of A. Puts L and U by reference, returs permutation P
-  Matrix LUP(Matrix& A, Matrix& L, Matrix& U);
+  Matrix LUP(const Matrix& A, Matrix& L, Matrix& U);
   //invert square matrix using LUP
-  Matrix LUInvert(Matrix& A);
+  Matrix LUInvert(const Matrix& A);
   //transpose of A
-  Matrix transpose(Matrix& A);
+  Matrix transpose(const Matrix& A);
   //Moore-Penrose Pseudo-Inverse
-  Matrix MPInvert(Matrix& A);
+  Matrix MPInvert(const Matrix& A);
   
 }
 
 
 //Printing operators
-std::ostream& operator<<(std::ostream& o,  matlib::Vector& V);
-std::ostream& operator<<(std::ostream& o, matlib::Matrix& A);
+std::ostream& operator<<(std::ostream& o,  const matlib::Vector& V);
+std::ostream& operator<<(std::ostream& o, const matlib::Matrix& A);
 
 //Scaling factor
-matlib::Matrix operator*(double c, matlib::Matrix& A);
-matlib::Vector operator*(double c, matlib::Vector& V);
+matlib::Matrix operator*(double c, const matlib::Matrix& A);
+matlib::Vector operator*(double c, const matlib::Vector& V);
+
+matlib::Vector operator*(const matlib::Matrix& A, const matlib::Vector& b);
 
   
+#endif

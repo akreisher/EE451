@@ -56,8 +56,8 @@ void matScale(mat* A, float c){
     }
 }
 
-int matAlloc(mat*A, int n, int m){
-  
+mat* matAlloc(int n, int m){
+  mat* A = malloc(sizeof(*A));
   A->n = n;
   A->m = m;
   A->dat = calloc(n, sizeof(float*));
@@ -67,10 +67,6 @@ int matAlloc(mat*A, int n, int m){
   return A;
 }
 
-mat* matInit(int n, int m){
-  mat* A = malloc
-  strcpy(A->name,"Matrix");
-  
 
 
 void matFree(mat* A){

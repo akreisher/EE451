@@ -2,14 +2,9 @@
 #include <cstdlib>
 #include <cmath>
 #include <iomanip>
-
-
+#include <string>
 
 using namespace matlib;
-
-
-
-
 
 Vector::Vector(const Vector& A):Vector(A.n,A.name){
   this->alloc(A.n);
@@ -24,7 +19,7 @@ Vector& Vector::operator=(const Vector& rhs){
   if(*this == rhs) return *this;
   this->name = rhs.name;
   this->n = rhs.n;
-  this->alloc(rhs.n);
+  if (this->size() != rhs.size()) this->alloc(rhs.n);
   for (int i = 0;i<rhs.n;i++){
       this->data[i] = rhs.data[i];
   }
@@ -55,20 +50,65 @@ void Vector::free(){
   }
 }
 
+double Vector::magnitude() const{
+  return sqrt((*this)*(*this));
+}
+
 double& Vector::operator[](int c){
   if (c>=this->n || c<0){
-    std::cerr << "Invalid read of index "<<c<<" for vector of size "<<this->n<<std::endl;
-    exit(EXIT_FAILURE);
+    throw(MatOpException("Invalid read!"));
   }
   if (this->data == nullptr){
-    std::cerr<< this->name<< " is not allocated!"<<std::endl;
-    exit(EXIT_FAILURE);
+    throw(MatOpException("Matrix not allocated!"));
   }
-
   return this->data[c];
 }
 
+const double& Vector::operator[] (int c) const{
+  if (c>=this->n || c<0){
+    throw(MatOpException("Invalid read!"));
+  }
+  if (this->data == nullptr){
+    throw(MatOpException("Matrix not allocated!"));
+  }
+  return this->data[c];
+}  
+  
 
+Vector Vector::operator+(const Vector& B) const{
+  if (this->size() != B.size()) {
+    throw MatOpException("Incompatible dimensions for vector addition");
+  }
+  Vector out(this->size());
+  for (int i = 0; i<this->size(); i++){
+    out[i] = (*this)[i]+B[i];
+  }
+  return out;
+}
+
+Vector Vector::operator-(const Vector& B) const{
+  if (this->size() != B.size()) {
+    throw MatOpException("Incompatible dimensions for vector subtraction");
+  }
+  Vector out(this->size());
+  for (int i = 0; i<this->size(); i++){
+    out[i] = (*this)[i]-B[i];
+  }
+  return out;
+}
+
+double Vector::operator*(const Vector& B) const{
+  if (this->size() != B.size()) {
+    throw MatOpException("Incompatible dimensions for vector product");
+  }
+  double out = 0;
+  for (int i = 0; i<this->size(); i++){
+    out += (*this)[i]*B[i];
+  }
+  return out;
+}
+    
+    
 
 Matrix::Matrix(const Matrix& A) : Matrix(A.n,A.m,A.name){
   for (int i = 0; i< A.n;i++){
@@ -79,14 +119,14 @@ Matrix::Matrix(const Matrix& A) : Matrix(A.n,A.m,A.name){
 
 Matrix& Matrix::operator=(const Matrix& rhs){
   if (*this == rhs) return *this;
-  this->alloc(rhs.n,rhs.m);
+  if (this->n != rhs.n) this->alloc(rhs.n,rhs.m);
   for (int i = 0; i< rhs.n;i++){
-    *(this->data[i]) = Vector(*(rhs.data[i]));
+    (*this)[i] = *(rhs.data[i]);
   }
   return *this;
 }
 
-bool Matrix::operator==(const Matrix& rhs){
+bool Matrix::operator==(const Matrix& rhs) const{
   if (this->n == rhs.n && this->m == rhs.m && this->data == rhs.data){
     return true;
   }
@@ -120,19 +160,27 @@ void Matrix::free(){
   }
 }
 
-Vector& Matrix::operator[](int r){
+Vector& Matrix::operator[](int r) {
   if (this->data == nullptr){
-    std::cerr<< this->name<< " is not allocated!"<<std::endl;
-    exit(EXIT_FAILURE);
+    throw(MatOpException("Data not allocated"));
   }
   if (r>=this->n || r<0){
-    std::cerr << "Invalid read of row "<<r<<" for matrix of size "<<this->n<<std::endl;
-    exit(EXIT_FAILURE);
+    throw(MatOpException("Invalid Read"));
   }
   return *this->data[r];
 }
 
-Matrix Matrix::operator*(Matrix& B){
+const Vector& Matrix::operator[](int r) const{
+  if (this->data == nullptr){
+    throw(MatOpException("Data not allocated"));
+  }
+  if (r>=this->n || r<0){
+    throw(MatOpException("Invalid Read"));
+  }
+  return *this->data[r];
+}
+
+Matrix Matrix::operator*(const Matrix& B) const{
   Matrix C = Matrix(this->n,B.m);
   for (int i = 0;i<this->n;i++){
     for (int j = 0;j<B.m;j++){
@@ -144,29 +192,31 @@ Matrix Matrix::operator*(Matrix& B){
   return C;
 }
 
-Matrix Matrix::operator+(Matrix& B){
-  //TODO Add error checking
+Matrix Matrix::operator+(const Matrix& B) const{
+  if (this->getN() != B.getN() || this->getM() != B.getM()){
+    throw MatOpException("Incompatible dimensions for matrix addition");
+  }
   Matrix C = Matrix(this->n,this->m);
   for (int i = 0; i< this->n;i++){
-    for (int j = 0; j< this->m;j++){
-      C[i][j] = (*this)[i][j]+B[i][j];
-    }
+    C[i] = (*this)[i]+B[i];
   }
   return C;
 }
 
-Matrix Matrix::operator-(Matrix& B){
-  //TODO Add error checking
+Matrix Matrix::operator-(const Matrix& B) const{
+  if (this->getN() != B.getN() || this->getM() != B.getM()){
+    throw MatOpException("Incompatible dimensions for matrix subtraction");
+  }
   Matrix C = Matrix(this->n,this->m);
   for (int i = 0; i< this->n;i++){
-    for (int j = 0; j< this->m;j++){
-      C[i][j] = (*this)[i][j]-B[i][j];
-    }
+    C[i] = (*this)[i]-B[i];
   }
   return C;
 }
 
-Matrix& Matrix::operator+=(Matrix& B){
+
+
+Matrix& Matrix::operator+=(const Matrix& B) {
   //TODO Add error checking
   for (int i = 0; i< this->n;i++){
     for (int j = 0; j< this->m;j++){
@@ -176,7 +226,7 @@ Matrix& Matrix::operator+=(Matrix& B){
   return (*this);
 }
 
-Matrix& Matrix::operator-=(Matrix& B){
+Matrix& Matrix::operator-=(const Matrix& B){
   //TODO Add error checking
   for (int i = 0; i< this->n;i++){
     for (int j = 0; j< this->m;j++){
@@ -186,14 +236,19 @@ Matrix& Matrix::operator-=(Matrix& B){
   return (*this);
 }
 
-Vector operator*(double c, Vector& V){
+void Matrix::print(){
+  std::cout<<(*this);
+}
+
+Vector operator*(double c, const Vector& V){
   Vector out = Vector(V);
   for (int i = 0; i<V.size();i++){
     out[i] = c*(out[i]);
   }
   return out;
 }
-Matrix operator*(double c, Matrix& A){
+
+Matrix operator*(double c, const Matrix& A){
   Matrix out = Matrix(A);
   for (int i = 0; i<A.getN();i++){
     out[i] = c*out[i];
@@ -201,9 +256,19 @@ Matrix operator*(double c, Matrix& A){
   return out;
 }
 
+Vector operator*(const Matrix& A, const Vector& b){
+  if (A.getM() != b.size()){
+    throw MatOpException("Incompatible dimensions for matrix/vector multiplication");
+  }
+  Vector out(A.getN());
+  for (int i = 0;i<A.getN();i++){
+    out[i] = A[i]*b;
+  }
+  return out;
+}
+    
 
-
-std::ostream& operator<<(std::ostream& o,  matlib::Vector& V){
+std::ostream& operator<<(std::ostream& o,  const matlib::Vector& V){
   for (int i = 0; i<V.size();i++){
     o<<std::left<<std::setw(9)<<std::setfill(' ')<<std::setprecision(3);
     o<<(V[i])<<"   ";
@@ -211,7 +276,7 @@ std::ostream& operator<<(std::ostream& o,  matlib::Vector& V){
   return o;
 }
 
-std::ostream& operator<<(std::ostream& o, matlib::Matrix& A){
+std::ostream& operator<<(std::ostream& o, const matlib::Matrix& A){
   if (A.getName() != "Matrix"){
     o<<A.getName()<<std::endl;
     for (int i =0;i<9*A.getM();i++) o<<'-';
@@ -224,6 +289,23 @@ std::ostream& operator<<(std::ostream& o, matlib::Matrix& A){
   return o;
 }
 
+Vector matlib::magic(int n){
+  Vector out(n);
+  for (int i = 0; i<n;i++){
+    out[i] = rand()%100;
+  }
+  return out;
+}
+
+Matrix matlib::magic(int n, int m){
+  Matrix out(n,m);
+  for (int i = 0; i<n;i++){
+    out[i] = magic(m);
+  }
+  return out;
+}
+    
+
 Matrix matlib::eyes(int n, int m){
   Matrix out = Matrix(n,m);
   for (int i = 0; i < n; i++){
@@ -232,7 +314,7 @@ Matrix matlib::eyes(int n, int m){
   return out;
 }
 
-Matrix matlib::LUP(Matrix& A, Matrix& L, Matrix& U){
+Matrix matlib::LUP(const Matrix& A, Matrix& L, Matrix& U){
   U = A;
   L = eyes(A.getN(),A.getM());
   Matrix P = L;
@@ -273,17 +355,18 @@ Matrix matlib::LUP(Matrix& A, Matrix& L, Matrix& U){
   return P;
 }
 
-Matrix matlib::LUInvert(Matrix& A){
+Matrix matlib::LUInvert(const Matrix& A){
   int n = A.getN();
   Matrix L,U,P;
   P=LUP(A,L,U);
-
+  
   for (int i = 0;i<n;i++){
     if (L[i][i] == 0 || U[i][i] == 0){
       std::cerr<<"L and U cannot contain 0 in diags";
       exit(EXIT_FAILURE);
     }
   }
+  
 
   Matrix X(n,n);
   Matrix Y(n,n);
@@ -315,7 +398,7 @@ Matrix matlib::LUInvert(Matrix& A){
   return Y*P;
 }
 
-Matrix matlib::transpose(Matrix& A){
+Matrix matlib::transpose(const Matrix& A){
   Matrix out = Matrix(A.getM(),A.getN());
   for (int i = 0; i<A.getN(); i++){
     for (int j = 0; j<A.getM();j++){
@@ -325,7 +408,7 @@ Matrix matlib::transpose(Matrix& A){
   return out;
 }
 
-Matrix matlib::MPInvert(Matrix& A){
+Matrix matlib::MPInvert(const Matrix& A){
   Matrix out;
   Matrix AT = transpose(A);
   if (A.getM()>A.getN()){
@@ -333,6 +416,7 @@ Matrix matlib::MPInvert(Matrix& A){
     out = LUInvert(out);
     out = AT*out;
   }
+  if (A.getM() == A.getN()) out = LUInvert(A);
 
   return out;
 }

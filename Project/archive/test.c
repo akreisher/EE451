@@ -1,4 +1,4 @@
-#include "lib/matlib.h"
+#include "matlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -25,7 +25,7 @@ int main(){
   int m = n;
   */
   int n = 2;
-  int m = 4;
+  int m = 2;
   
   mat* A = matAlloc(n,m);
 
