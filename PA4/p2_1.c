@@ -4,8 +4,7 @@
 
 int main(int argc, char* argv[]){
   //Init
-  int i, size, rank, sum = 0, numSize = 64, elem_per, tag = 18;
-  int numSize = 64;
+  int i, size, rank, sum = 0, numSize = 64, elem_per, msg, tag = 18;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD,&size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -28,16 +27,16 @@ int main(int argc, char* argv[]){
     sum += nums[i];
   }
 
-  //Gather sum at process 0
-  int* sums = (rank==0) ? malloc(sizeof(int)*size) : NULL;
-  MPI_Gather(&sum, 1, MPI_INT, sums, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-  //Compute total sum
+  //Compute total sum at process 0
   if (rank == 0){
-    sum = 0;
-    for (i = 0; i < size; i++) sum += sums[0];
+    for (i = 1; i < size; i++){
+      MPI_Recv(&msg,1, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
+      sum += msg;
+    }
     printf("Total sum is: %d\n", sum);
-    free(sums);
+  }
+  else{
+    MPI_Send(&sum, 1, MPI_INT, 0, tag, MPI_COMM_WORLD);
   }
 
   MPI_Finalize();

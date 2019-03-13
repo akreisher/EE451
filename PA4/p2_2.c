@@ -5,7 +5,6 @@
 int main(int argc, char* argv[]){
   //Init
   int i, size, rank, sum = 0, total, numSize = 64, elem_per, tag = 18;
-  int numSize = 64;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD,&size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -35,7 +34,7 @@ int main(int argc, char* argv[]){
   MPI_Reduce(&sum, &total, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   //Print total sum
-  if (rank == 0) printf("Total sum is: %d\n", sum);
+  if (rank == 0) printf("Total sum is: %d\n", total);
     
   MPI_Finalize();
 }
