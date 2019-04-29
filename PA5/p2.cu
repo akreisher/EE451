@@ -5,7 +5,7 @@
 
 #define HEIGHT 1024
 #define WIDTH 1024
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 64
 
 
 __global__ void matrix_mult(int *a, int *b, int *c){
@@ -59,8 +59,8 @@ int main(){
 	cudaMemcpy(gpu_a, a, sizeof(int) * HEIGHT * WIDTH, cudaMemcpyHostToDevice);
 	cudaMemcpy(gpu_b, b, sizeof(int) * HEIGHT * WIDTH, cudaMemcpyHostToDevice);
 
-	dim3 dimGrid(32, 32);
-	dim3 dimBlock(32, 32);
+	dim3 dimGrid(1024/BLOCK_SIZE, 1024/BLOCK_SIZE);
+	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
 	if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) { perror( "clock gettime" );}
 
